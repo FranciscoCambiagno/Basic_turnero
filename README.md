@@ -1,2 +1,2 @@
 # Basic_turnero
-A basic turner made in Python
+A basic Queue Management System made in Python
