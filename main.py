@@ -34,7 +34,13 @@ turnos: list[dict[str, str | dict[str,str|tuple[int]]  ]] = [] # Lista de turnos
 #    "hora":,
 #    "servicio": servicio}
 
-servicios: list[dict[str,str|tuple[int]]] = [] # Lista de servicios
+servicios: list[dict[str,str|tuple[int]]] = [
+    {"nombre":"Corte de pelo",
+     "precio":(10000,)},
+    {"nombre":"Barba",
+     "precio":(5000,)}
+] 
+# Lista de servicios
 # Servicio:
 # {"nombre":str,
 #  "precio":tuple[int]}
@@ -56,6 +62,7 @@ def mostrar_menu() -> None:
 7. Mostrar servicios
 8. Estadísticas
 9. Mostrar clientes
+10. Agregar servicios
 0. Salir
 
 Seleccione una opción:""")
@@ -87,8 +94,17 @@ def _mostrar_titulo(titulo:str) -> None:
         print("-----------------------------------------")
         print()
 
-    elif titulo == "":
-        pass
+    elif titulo == "mostrar_servicios":
+        print("-----------------------------------------")
+        print("Lista De Servicios")
+        print("-----------------------------------------")
+        print()
+
+    elif titulo == "agregar_servicios":
+        print("-----------------------------------------")
+        print("Agregar Servicios")
+        print("-----------------------------------------")
+        print()
 
 
 def _validar_nombre(nombre:str) -> bool:
@@ -129,6 +145,24 @@ def _validar_telefono(telefono:str) -> bool:
 
     return es_correcto
 
+
+
+def _validar_precio(precio:str) -> bool:
+    """
+    Verifica que el precio sea mayor a 0 y solo contenga digitos.
+    """
+    es_correcto = True
+
+    if len(precio) == 0:
+        es_correcto = False
+    else:
+        for caracter in precio:
+            if not caracter.isdigit():
+                es_correcto = False
+                break
+
+    return es_correcto
+        
 
 
 def registrar_cliente() -> None:
@@ -207,10 +241,62 @@ def buscar_cliente(telefono:str) -> Cliente:
 #mostrar_servicios()
 #mostrar_estadisticas()
 
+def agregar_servicios() -> None:
+    _mostrar_titulo("agregar_servicios")
 
-def _mostrar_clientes() -> None:
+    print("Ingrese el nombre del servicio:")
+
+    while True:
+        nombre_servicio:str = input()
+
+        if len(nombre_servicio) >= 1:
+            break
+
+        subprocess.run(["clear"])
+
+        _mostrar_titulo("agregar_servicios")
+        print("El nombre no puede estar vacio.")
+
+    subprocess.run(["clear"])
+    _mostrar_titulo("agregar_servicios")
+
+    print("Ingrese el precio del servicio:")
+    
+    while True:
+        entrada:str = input()
+        precio_servicio:int = 0
+
+        if _validar_precio(entrada):
+            precio_servicio = int(entrada)
+            break
+
+        subprocess.run(["clear"])
+
+        _mostrar_titulo("agregar_servicios")
+        print("El precio solo uede contener digitos y debe ser mayor a cero.")
+
+    servicio:dict[str,str|tuple[int]] = {
+        "nombre":nombre_servicio,
+        "precio":(precio_servicio,)
+    }
+
+    servicios.append(servicio)
+
+    subprocess.run(["clear"])
+    _mostrar_titulo("agregar_servicios")
+    print("Servicio agregado correctamente")
+    print()
+    print(f"Nombre : {servicio["nombre"]}")
+    print(f"Precio : {servicio["precio"]}")
+
+    input()
+    subprocess.run(["clear"])
+
+
+
+def mostrar_clientes() -> None:
     """
-    Muestra los clientes guardados en la lista clientes.
+    Muestra los clientes cargados en la lista clientes.
     """
     _mostrar_titulo("clientes")
     for cliente in clientes:
@@ -221,6 +307,19 @@ def _mostrar_clientes() -> None:
     input()
     subprocess.run(["clear"])
 
+def mostrar_servicios() -> None:
+    """
+    Muestra los servicios cargados.
+    """
+    _mostrar_titulo("mostrar_servicios")
+    for servicio in servicios:
+        print(f"Nombre : {servicio["nombre"]}")
+        print(f"Precio : {servicio["precio"]}")
+        print("--------")
+        print()
+
+    input()
+    subprocess.run(["clear"])
 
 #-----------------------------------------------
 #---------Main
@@ -249,11 +348,13 @@ def main() -> None:
         elif selection == "6":
             pass
         elif selection == "7":
-            pass
+            mostrar_servicios()
         elif selection == "8":
             pass
         elif selection == "9":
-            _mostrar_clientes()
+            mostrar_clientes()
+        elif selection == "10":
+            agregar_servicios()
         elif selection == "0":
             break
         else:
