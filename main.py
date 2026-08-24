@@ -1,4 +1,6 @@
 import subprocess
+from datetime import date, time, timedelta
+from datetime import datetime
 
 #-----------------------------------------------
 #---------Declaración de la clase Cliente
@@ -25,26 +27,39 @@ class Cliente():
 #---------Declaración de estructuras de datos
 #-----------------------------------------------
 
-clientes: list[Cliente] = [] # Lista de clientes
-
-turnos: list[dict[str, str | dict[str,str|tuple[int]]  ]] = [] # Lista de turnos
-# Turno:
-#   {"cliente":str,
-#    "dia":,
-#    "hora":,
-#    "servicio": servicio}
-
 servicios: list[dict[str,str|tuple[int]]] = [
     {"nombre":"Corte de pelo",
      "precio":(10000,)},
     {"nombre":"Barba",
-     "precio":(5000,)}
-] 
+     "precio":(5000,)}] 
 # Lista de servicios
 # Servicio:
 # {"nombre":str,
 #  "precio":tuple[int]}
 
+
+clientes: list[Cliente] = [Cliente("Ariel","4823167"),Cliente("Martina","2917536481")] # Lista de clientes
+
+
+turnos: list[ dict[str, str | dict[str,str|tuple[int]] ] ] = [
+    {"cliente":clientes[1],
+     "dia":datetime.strptime("21/09/2026", "%d/%m/%Y").date(),
+     "hora":datetime.strptime("16:00", "%H:%M").time(),
+     "servicio":servicios[1]},
+    {"cliente":clientes[0],
+     "dia":datetime.strptime("10/11/2026", "%d/%m/%Y").date(),
+     "hora":datetime.strptime("10:30", "%H:%M").time(),
+     "servicio":servicios[0]},
+    {"cliente":clientes[1],
+     "dia":datetime.strptime("22/09/2026", "%d/%m/%Y").date(),
+     "hora":datetime.strptime("17:00", "%H:%M").time(),
+     "servicio":servicios[1]}] 
+# Lista de turnos
+# Turno:
+#   {"cliente":str,
+#    "dia": date,
+#    "hora": time,
+#    "servicio": servicio}
 
 
 #-----------------------------------------------
@@ -63,18 +78,21 @@ def mostrar_menu() -> None:
 8. Estadísticas
 9. Mostrar clientes
 10. Agregar servicios
+11. Mostrar los turnos de un cleinte
 0. Salir
 
 Seleccione una opción:""")
 
 
-def _mostrar_titulo(titulo:str) -> None:
+def _mostrar_titulo(titulo:str, limpiar_pantalla:bool = True) -> None:
     """
     Muestra los titulos de cada seccion indicandolo por parametros:
      menu -> Sistema de turnos
      cliente -> Registro de clientes
     """
 
+    if limpiar_pantalla:
+        subprocess.run(["clear"])
 
     if titulo == "menu":
         print("=========================================")
@@ -103,6 +121,18 @@ def _mostrar_titulo(titulo:str) -> None:
     elif titulo == "agregar_servicios":
         print("-----------------------------------------")
         print("Agregar Servicios")
+        print("-----------------------------------------")
+        print()
+
+    elif titulo == "reservar_turno":
+        print("-----------------------------------------")
+        print("Reserva De Turnos")
+        print("-----------------------------------------")
+        print()
+
+    elif titulo == "mostrar_agenda":
+        print("-----------------------------------------")
+        print("Agenda")
         print("-----------------------------------------")
         print()
 
@@ -164,6 +194,60 @@ def _validar_precio(precio:str) -> bool:
     return es_correcto
         
 
+def _anio_bisiesto(anio:int) -> bool:
+    bisiesto:bool = False
+
+    if (anio % 4 == 0 and anio % 100 != 0) or (anio % 400 == 0):
+        bisiesto == True
+
+    return bisiesto
+
+
+def _validar_fecha(anio:int, mes:str, dia:str) -> bool:
+    es_valido:bool = True
+
+    for caracter in mes:
+        if not caracter.isdigit():
+            es_valido = False
+            #print("El mes ingresado no es valido")
+
+    for caracter in dia:
+        if not caracter.isdigit():
+            es_valido = False
+            #print("El dia ingresado no es valido")
+
+    if es_valido:
+        dia = int(dia)
+        mes = int(mes)
+
+    if es_valido and (mes < 1 or mes > 12):
+        es_valido = False
+
+    if es_valido:
+        if mes >= 1 and mes <= 12 and dia >= 1:
+            if mes == 2:
+                if _anio_bisiesto(anio):
+                    if dia > 29:
+                        es_valido = False
+                else:
+                    if dia > 28:
+                        es_valido = False
+
+            elif mes % 2 == 0:
+                if dia > 30:
+                    es_valido = False
+
+            else:
+                if dia > 31:
+                    es_valido = False
+
+                    
+        else:
+            es_valido = False
+    
+    return es_valido    
+    
+
 
 def registrar_cliente() -> None:
     """
@@ -180,13 +264,13 @@ def registrar_cliente() -> None:
         if _validar_nombre(nombre):
             break                   #El nombre es valido
 
-        subprocess.run(["clear"])
+        
 
         _mostrar_titulo("cliente")
         print("El nombre ingresado no es valido.")
         print("Vuelva a ingresar el nombre del cleinte: ")
 
-    subprocess.run(["clear"])
+    
     _mostrar_titulo("cliente")
 
     print("Ingrese el telefono del cliente: ")
@@ -196,13 +280,13 @@ def registrar_cliente() -> None:
         if _validar_telefono(telefono):
             break                   #El telefono es valido
 
-        subprocess.run(["clear"])
+        
 
         _mostrar_titulo("cliente")
         print("El numero de telefono no es valido")
         print("Vuelva a ingresar el telefono: ")
 
-    subprocess.run(["clear"])
+    
     _mostrar_titulo("cliente")
 
     if not buscar_cliente(telefono):
@@ -216,8 +300,67 @@ def registrar_cliente() -> None:
         print("Ya existe un cliente registrado con ese numero de telefono.")
 
     input()
+    
+def _buscar_cliente_nombre() -> Cliente:
+    """
+    Busca un cliente por nombre parcial y devuelve ese cliente.
+    """
+    _validar_numero = _validar_precio   # Le agrega un alias a la funcion _validar_precio ya que sirve apra validar numeros
+
+    ingreso:str = ""
+    nombre_parcial:str = ""
+    cliente_buscado:Cliente = None
+    clientes_aux:list[Cliente] = []
+    indice:int = 0
+
     subprocess.run(["clear"])
 
+    while True:
+        if ingreso != ".":
+            _mostrar_titulo("mostrar_agenda")
+            print("Ingrese el nombre completo o parcial del cliente buscado:")
+            print("Ingrese un punto (.) si ya ve el nombre buscado en la lista.")
+        
+        print()
+
+        if not ingreso == "":
+
+            if not ingreso == ".":
+                clientes_aux = []
+                indice = 0
+                nombre_parcial += ingreso
+                print("----------")
+
+                for cliente in clientes:
+                    if nombre_parcial.lower() in cliente.get_nombre().lower():  # Muestra los nombres que coinciden parcialmente
+                        print()
+                        print(f"Posicion: {indice}")
+                        print(f"Nombre: {cliente.get_nombre()}")
+                        print(f"Telefono: {cliente.get_telefono()}")
+                        print("----------")
+                        clientes_aux.append(cliente)
+                        indice += 1
+            elif ingreso == ".": 
+                while True:
+                    print("Escriba el numero de posicion del cliente que desea seleccionar")
+                    print("Ingrese R para buscar de nuevo o S para salir")
+                    ingreso = input().strip().lower()
+
+                    if _validar_numero(ingreso) or ingreso == "s" or ingreso == "r":
+                        if ingreso != "s" and ingreso != "r":       # Si no es s o r es un nuemro en el rango valido
+                            if 0 <= int(ingreso) <= indice:
+                                cliente_buscado = clientes_aux[int(ingreso)]
+
+                        break   # En caualquier caso corta el bucle while
+
+                if ingreso == "s" or cliente_buscado:  # Si elligio s (salir) corta el bucle while exterior sino es s ingreso un numero o caracter invalido
+                    break
+
+        ingreso = input(f"Nombre: {nombre_parcial}").strip()
+        #if ingreso != ".":
+        #    subprocess.run(["clear"])
+
+    return cliente_buscado
 
 
 def buscar_cliente(telefono:str) -> Cliente:
@@ -234,12 +377,103 @@ def buscar_cliente(telefono:str) -> Cliente:
     return cliente_buscado
 
 
+
+
 #reservar_turno()
 #cancelar_turno()
-#mostrar_agenda()
-#mostrar_turnos_cliente()
-#mostrar_servicios()
 #mostrar_estadisticas()
+
+def _ingresar_horario(fecha:date) -> datetime:
+    hora:datetime = datetime.strptime("09:00", "%H:%M")
+    horarios:list[datetime] = []
+    seleccion:str = ""
+    indice_seleccion:int = 0
+    horario_ingresado:datetime = None
+
+    while hora <= datetime.strptime("18:00", "%H:%M"):
+        horarios.append(hora.time())
+        hora += timedelta(minutes=30)
+
+    for turno in turnos:
+        if turno.get("dia") == fecha:
+            horarios.remove(turno.get("hora"))
+
+    if len(horarios) > 0:
+        while True:
+            print("Los horarios disponibles son: ")
+            print()
+            for i, horario in enumerate(horarios):
+                print("------------")
+                print(f"{i}. {horario}")
+
+            print()
+            seleccion = input("Seleccione el horario deseado: ")
+            _validar_indice = _validar_precio   # Agrega un alias a la funcion _validar_precio ya que funciona para validar numeros
+            if _validar_indice(seleccion):
+                indice_seleccion = int(seleccion)
+                if indice_seleccion >= 0 and indice_seleccion < len(horarios):
+                    break
+
+            _mostrar_titulo("reservar_turno")
+            print("Valor ingresado no valido")
+
+        horario_ingresado = datetime.combine(fecha, horarios[indice_seleccion])
+
+    return horario_ingresado 
+
+    
+    
+
+def reservar_turno() -> None: # Dividir en mas funciones?
+    """
+    Permite reservar turnos para este año o el siguiente.
+    """
+    anio:int = datetime.now().year
+    mes:int = 0
+    dia:int = 0
+    seleccion_anio:str = ""
+    seleccion_mes:str = ""
+    seleccion_dia:str = ""
+    fecha:date = date() 
+
+    _mostrar_titulo("reservar_turno")
+
+    while True:
+        print("El turno es para este año?")
+        print("1. Si")
+        print("2. No")
+        seleccion_anio = input().strip()
+
+        _mostrar_titulo("reservar_turno")
+
+        if seleccion_anio == "2":
+            anio += 1
+            break
+        elif seleccion_anio == "1":
+            break        
+        
+        print("El valor ingresado no es valido.")
+
+    while True:
+        print("Ingrese el numero del mes:")
+        seleccion_mes = input().strip()
+
+        print("Ingrese el numero de dia: ")
+        seleccion_dia = input().strip()
+
+        if _validar_fecha(anio, seleccion_mes, seleccion_dia):
+            fecha = date(anio, int(seleccion_mes), int(seleccion_dia))
+            break
+
+        _mostrar_titulo("reservar_turno")
+        print("La fecha ingresada no es valida")
+
+    _mostrar_titulo("reservar_turno")
+    
+    _ingresar_horario(fecha)
+
+
+
 
 def agregar_servicios() -> None:
     _mostrar_titulo("agregar_servicios")
@@ -252,12 +486,12 @@ def agregar_servicios() -> None:
         if len(nombre_servicio) >= 1:
             break
 
-        subprocess.run(["clear"])
+        
 
         _mostrar_titulo("agregar_servicios")
         print("El nombre no puede estar vacio.")
 
-    subprocess.run(["clear"])
+    
     _mostrar_titulo("agregar_servicios")
 
     print("Ingrese el precio del servicio:")
@@ -270,7 +504,7 @@ def agregar_servicios() -> None:
             precio_servicio = int(entrada)
             break
 
-        subprocess.run(["clear"])
+        
 
         _mostrar_titulo("agregar_servicios")
         print("El precio solo uede contener digitos y debe ser mayor a cero.")
@@ -282,16 +516,15 @@ def agregar_servicios() -> None:
 
     servicios.append(servicio)
 
-    subprocess.run(["clear"])
+    
     _mostrar_titulo("agregar_servicios")
     print("Servicio agregado correctamente")
     print()
     print(f"Nombre : {servicio["nombre"]}")
-    print(f"Precio : {servicio["precio"]}")
+    print(f"Precio : {servicio["precio"][0]}")
 
     input()
-    subprocess.run(["clear"])
-
+    
 
 
 def mostrar_clientes() -> None:
@@ -305,7 +538,8 @@ def mostrar_clientes() -> None:
         print()
 
     input()
-    subprocess.run(["clear"])
+    
+
 
 def mostrar_servicios() -> None:
     """
@@ -314,12 +548,51 @@ def mostrar_servicios() -> None:
     _mostrar_titulo("mostrar_servicios")
     for servicio in servicios:
         print(f"Nombre : {servicio["nombre"]}")
-        print(f"Precio : {servicio["precio"]}")
+        print(f"Precio : {servicio["precio"][0]}")
         print("--------")
         print()
 
     input()
-    subprocess.run(["clear"])
+    
+
+def mostrar_agenda(nombre_cliente:str = None) -> None:
+    """
+    Muestra la agenda completa o solamente la de un cleinte especifico si se pasa el nombre por parametro.
+    """
+    _mostrar_titulo("mostrar_agenda")
+
+    if nombre_cliente:
+        print(f"Mostrando agenda de {nombre_cliente}")
+        print()
+
+    for turno in turnos:
+        if turno["cliente"].get_nombre() == nombre_cliente or not nombre_cliente:
+            print(f"{turno["dia"].strftime("%d/%m")} - {turno["hora"].strftime("%H:%M")}")
+            print(f"Cliente: {turno["cliente"].get_nombre()}")        
+            print(f"Servicio: {turno["servicio"].get("nombre")}")
+            print()
+            print("-----------------------------------------")
+            print()
+
+    input()
+
+
+
+def mostrar_turnos_cliente() -> None:
+    """
+    Busca un cliente y muestra sus turnos agendados.
+    """
+    _mostrar_titulo("mostrar_agenda")
+
+    cliente:Cliente = _buscar_cliente_nombre()
+
+    if cliente:
+        mostrar_agenda(nombre_cliente=cliente.get_nombre()) 
+    else:
+        print("Cliente no seleccionado.")
+        input()
+
+
 
 #-----------------------------------------------
 #---------Main
@@ -331,9 +604,7 @@ def main() -> None:
     while True:
         mostrar_menu()
 
-        selection = input()
-
-        subprocess.run(["clear"])
+        selection = input()        
 
         if selection == "1":
             registrar_cliente()
@@ -344,7 +615,7 @@ def main() -> None:
         elif selection == "4":
             pass
         elif selection == "5":
-            pass
+            mostrar_agenda()
         elif selection == "6":
             pass
         elif selection == "7":
@@ -355,6 +626,8 @@ def main() -> None:
             mostrar_clientes()
         elif selection == "10":
             agregar_servicios()
+        elif selection == "11":
+            mostrar_turnos_cliente()
         elif selection == "0":
             break
         else:
