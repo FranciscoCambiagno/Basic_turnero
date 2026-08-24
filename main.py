@@ -78,7 +78,6 @@ def mostrar_menu() -> None:
 8. Estadísticas
 9. Mostrar clientes
 10. Agregar servicios
-11. Mostrar los turnos de un cleinte
 0. Salir
 
 Seleccione una opción:""")
@@ -133,6 +132,12 @@ def _mostrar_titulo(titulo:str, limpiar_pantalla:bool = True) -> None:
     elif titulo == "mostrar_agenda":
         print("-----------------------------------------")
         print("Agenda")
+        print("-----------------------------------------")
+        print()
+
+    elif titulo == "buscar_cliente":
+        print("-----------------------------------------")
+        print("Buscar Un Cliente")
         print("-----------------------------------------")
         print()
 
@@ -289,7 +294,7 @@ def registrar_cliente() -> None:
     
     _mostrar_titulo("cliente")
 
-    if not buscar_cliente(telefono):
+    if not _buscar_cliente_telefono(telefono):
         cliente:Cliente = Cliente(nombre,telefono)
         clientes.append(cliente)
 
@@ -317,7 +322,7 @@ def _buscar_cliente_nombre() -> Cliente:
 
     while True:
         if ingreso != ".":
-            _mostrar_titulo("mostrar_agenda")
+            _mostrar_titulo("buscar_cliente")
             print("Ingrese el nombre completo o parcial del cliente buscado:")
             print("Ingrese un punto (.) si ya ve el nombre buscado en la lista.")
         
@@ -363,7 +368,7 @@ def _buscar_cliente_nombre() -> Cliente:
     return cliente_buscado
 
 
-def buscar_cliente(telefono:str) -> Cliente:
+def _buscar_cliente_telefono(telefono:str) -> Cliente:
     """
     Busca un cliente en la lista de clientes por numero de telefono y lo devuelve.
     """
@@ -540,7 +545,6 @@ def mostrar_clientes() -> None:
     input()
     
 
-
 def mostrar_servicios() -> None:
     """
     Muestra los servicios cargados.
@@ -577,7 +581,6 @@ def mostrar_agenda(nombre_cliente:str = None) -> None:
     input()
 
 
-
 def mostrar_turnos_cliente() -> None:
     """
     Busca un cliente y muestra sus turnos agendados.
@@ -592,6 +595,46 @@ def mostrar_turnos_cliente() -> None:
         print("Cliente no seleccionado.")
         input()
 
+
+def buscar_cliente() -> None:
+    seleccion:str = ""
+    cliente:Cliente = None
+
+    _mostrar_titulo("buscar_cliente")
+
+    while True:
+        print("Seleccione el metodo de busqueda del cliente:")
+        print("1. Nombre")
+        print("2. Telefono")
+        seleccion = input().strip()
+
+        if seleccion == "1":
+            cliente = _buscar_cliente_nombre()
+            break
+        elif seleccion == "2":
+            print()
+            print("Ingrese el numero de telefono completo del cliente:")
+            seleccion = input().strip()
+            if _validar_telefono(seleccion):
+                cliente = _buscar_cliente_telefono(seleccion)
+
+            break
+
+        else:
+            _mostrar_titulo("buscar_cliente")
+            print("Valor ingresado no valido")
+
+    _mostrar_titulo("buscar_cliente")
+
+    if cliente:
+        print("Cliente encontrado.")
+        print()
+        print(f"Nombre : {cliente.get_nombre()}")
+        print(f"Telefono : {cliente.get_telefono()}")
+    else:
+        print("No se a encontrado el cliente.")
+
+    input()
 
 
 #-----------------------------------------------
@@ -609,7 +652,7 @@ def main() -> None:
         if selection == "1":
             registrar_cliente()
         elif selection == "2":
-            pass
+            buscar_cliente()
         elif selection == "3":
             pass
         elif selection == "4":
@@ -617,7 +660,7 @@ def main() -> None:
         elif selection == "5":
             mostrar_agenda()
         elif selection == "6":
-            pass
+            mostrar_turnos_cliente()
         elif selection == "7":
             mostrar_servicios()
         elif selection == "8":
@@ -625,9 +668,7 @@ def main() -> None:
         elif selection == "9":
             mostrar_clientes()
         elif selection == "10":
-            agregar_servicios()
-        elif selection == "11":
-            mostrar_turnos_cliente()
+            agregar_servicios()            
         elif selection == "0":
             break
         else:
