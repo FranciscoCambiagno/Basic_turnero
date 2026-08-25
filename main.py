@@ -141,6 +141,24 @@ def _mostrar_titulo(titulo:str, limpiar_pantalla:bool = True) -> None:
         print("-----------------------------------------")
         print()
 
+    elif titulo == "seleccionar_servicio":
+        print("-----------------------------------------")
+        print("Seleccion De Servicio")
+        print("-----------------------------------------")
+        print()
+
+    elif titulo == "cancelar_turno":
+        print("-----------------------------------------")
+        print("Cancelacion De Turno")
+        print("-----------------------------------------")
+        print()
+
+    elif titulo == "buscar_turno_fecha":
+        print("-----------------------------------------")
+        print("Seleccion Turno")
+        print("-----------------------------------------")
+        print()
+
 
 def _validar_nombre(nombre:str) -> bool:
     """
@@ -305,7 +323,8 @@ def registrar_cliente() -> None:
         print("Ya existe un cliente registrado con ese numero de telefono.")
 
     input()
-    
+
+  
 def _buscar_cliente_nombre() -> Cliente:
     """
     Busca un cliente por nombre parcial y devuelve ese cliente.
@@ -382,101 +401,265 @@ def _buscar_cliente_telefono(telefono:str) -> Cliente:
     return cliente_buscado
 
 
+def _buscar_turno_fecha(fecha:date) -> dict[str, str|tuple[int]]:
+    """
+    Permite buscar un turno por fecha y lo devuelve
+    """
+
+    turno_buscado:dict[str, str|tuple[int]] = {}
+    turnos_ocupados:list[dict[str, str|tuple[int]]] = []
+    indice:int = 0
+    seleccion:str = ""
+    _validar_indice = _validar_precio   # Agrega un alias a la funcion _validar_precio ya que funciona para validar numeros
+
+    _mostrar_titulo("buscar_turno_fecha")
+
+    while True:
+        indice = 0
+        for turno in turnos:
+            if turno["dia"] == fecha:
+                print()
+                print(f"Posicion: {indice}")
+                print(f"{turno["dia"].strftime("%d/%m")} - {turno["hora"].strftime("%H:%M")}")
+                print(f"Cliente: {turno["cliente"].get_nombre()}")        
+                print(f"Servicio: {turno["servicio"].get("nombre")}")
+                print("----------")
+                turnos_ocupados.append(turno)
+                indice += 1
+        print()
+        print("Ingrese el numero de posicion del tunro que desee seleccionar")
+        print("Si el turno que esa buscando no esta en la lista ingrese 'S'")
+        seleccion  = input().strip().lower()
+
+        if _validar_indice(seleccion) and 0 <= int(seleccion) < indice:
+            turno_buscado = turnos_ocupados[int(seleccion)]
+            break
+        elif seleccion == "s":
+            break
+        else:
+            _mostrar_titulo("buscar_turno_fecha")
+            print("El vlaor ingresado no es valido")
+
+    return turno_buscado
 
 
-#reservar_turno()
-#cancelar_turno()
+def _seleccionar_servicio() -> dict[str, str|tuple[int]]:
+    """
+    Permite seleccionar uno de los servicios disponibles y devolverlo
+    """
+    seleccion:str = ""
+    servicio_seleccionado:dict[str, str|tuple[int]] = {}
+    _validar_indice = _validar_precio   # Agrega un alias a la funcion _validar_precio ya que funciona para validar numeros
+
+
+    _mostrar_titulo("seleccionar_servicio")
+    while True:
+
+        for i, servicio in enumerate(servicios):
+            print("----------")
+            print(f"Nombre : {servicio["nombre"]}")
+            print(f"Precio : {servicio.get("precio")[0]}")
+            print()
+
+        print("Seleccione uno de los servicios con su numero de posicion")
+        print("O ingrese S para salir sin seleccionar uno")
+        seleccion = input().lower().strip()
+
+        _mostrar_titulo("seleccionar_servicio")
+
+        if _validar_indice(seleccion) or seleccion == "s":
+            break
+        else:
+            print("Valor ingresado invalido")
+
+    if seleccion != "s":
+        servicio_seleccionado = servicios[int(seleccion)]
+
+    return servicio_seleccionado
+
+
 #mostrar_estadisticas()
 
+
+def cancelar_turno() -> None:
+    """
+    Permite buscar el turno por fecha y hora y cancelarlo.
+    """
+    turno:datetime = None
+    turno_fecha:date = None
+    anio:int = datetime.now().year
+    mes:str = ""
+    dia:str = ""
+    seleccion:str = ""
+
+    _mostrar_titulo("cancelar_turno")
+
+    while True:
+        print("El tunro es para este año?")
+        print("Ingrese 's' en caso afirmativo 'n' en caso negativo")
+        seleccion = input().strip().lower()
+
+        _mostrar_titulo("cancelar_turno")
+
+        if seleccion == "s":
+            anio += 1
+            break
+        elif seleccion == "n":
+            break
+        else:
+            print("Valor ingresqado invalido.")
+
+    while True:
+        print("Ingrese el numero del mes del turno:")
+        mes = input().strip()
+
+        print("Ingrese el numero del dia del turno:")
+        dia = input().strip()
+
+        _mostrar_titulo("cancelar_turno")
+
+        if _validar_fecha(anio, mes, dia):
+            turno_fecha = date(anio, int(mes), int(dia))
+            break
+
+        print("Uno de los valores ingresados no es valido")
+
+
+    turno = _buscar_turno_fecha(turno_fecha)
+
+    if turno:
+        print("Turno encontrado")
+
+        while True:
+            print()
+            print(f"{turno["dia"].strftime("%d/%m")} - {turno["hora"].strftime("%H:%M")}")
+            print(f"Cliente: {turno["cliente"].get_nombre()}")        
+            print(f"Servicio: {turno["servicio"].get("nombre")}")
+            print("----------")
+            print()
+            print("¿Seguro que desea eliminar el tunro? Ingrese 'S' para si o 'N' para no")
+            seleccion = input().strip().lower()
+
+            if seleccion == "s":
+                turnos.remove(turno)
+                break
+            elif seleccion == "n":
+                break
+            else:
+                _mostrar_titulo("cancelar_turno")
+                print("Valor ingresado no valido")
+
+    else:
+        print("No se selecciono un tunro para cancelarlo")
+
+    input()
+
+
+
 def _ingresar_horario(fecha:date) -> datetime:
+    """
+    Permite hacer la seleccion de un horario valido disponible para el dia de la fecha pasada por parametro y devuelve la fecha y hora del turno en datetime
+    """
     hora:datetime = datetime.strptime("09:00", "%H:%M")
-    horarios:list[datetime] = []
+    horarios_disponibles:list[datetime] = []    # Lista con los horarios disponibles
     seleccion:str = ""
     indice_seleccion:int = 0
     horario_ingresado:datetime = None
 
-    while hora <= datetime.strptime("18:00", "%H:%M"):
-        horarios.append(hora.time())
+    while hora <= datetime.strptime("18:00", "%H:%M"):  # Se llena la lista con los horarios disponibles hasta las 18Hs
+        horarios_disponibles.append(hora.time())
         hora += timedelta(minutes=30)
 
     for turno in turnos:
         if turno.get("dia") == fecha:
-            horarios.remove(turno.get("hora"))
+            horarios_disponibles.remove(turno.get("hora"))  # Se eliminan de la lista los horarios ocupados
 
-    if len(horarios) > 0:
+    if len(horarios_disponibles) > 0:
         while True:
             print("Los horarios disponibles son: ")
             print()
-            for i, horario in enumerate(horarios):
+            for i, horario in enumerate(horarios_disponibles):
                 print("------------")
                 print(f"{i}. {horario}")
 
             print()
-            seleccion = input("Seleccione el horario deseado: ")
+            seleccion = input("Seleccione el horario deseado ingresando el numero de posicion: ")
             _validar_indice = _validar_precio   # Agrega un alias a la funcion _validar_precio ya que funciona para validar numeros
             if _validar_indice(seleccion):
                 indice_seleccion = int(seleccion)
-                if indice_seleccion >= 0 and indice_seleccion < len(horarios):
+                if indice_seleccion >= 0 and indice_seleccion < len(horarios_disponibles):
                     break
 
             _mostrar_titulo("reservar_turno")
             print("Valor ingresado no valido")
 
-        horario_ingresado = datetime.combine(fecha, horarios[indice_seleccion])
-
+        horario_ingresado = datetime.combine(fecha, horarios_disponibles[indice_seleccion])
+    else:
+        print("No hay horarios disponibles para ese dia.")
+        input()
+    
     return horario_ingresado 
 
     
-    
-
+ 
 def reservar_turno() -> None: # Dividir en mas funciones?
     """
     Permite reservar turnos para este año o el siguiente.
     """
     anio:int = datetime.now().year
-    mes:int = 0
-    dia:int = 0
     seleccion_anio:str = ""
     seleccion_mes:str = ""
     seleccion_dia:str = ""
-    fecha:date = date() 
+    fecha:date = None
+    turno:datetime = None
+    cliente:Cliente = None
+    servicio:dict[str, str|tuple[int]] = {}
 
     _mostrar_titulo("reservar_turno")
 
-    while True:
-        print("El turno es para este año?")
-        print("1. Si")
-        print("2. No")
-        seleccion_anio = input().strip()
+    cliente = buscar_cliente()
+
+    servicio = _seleccionar_servicio()
+
+    if cliente and servicio:
+        while True:
+            print("El turno es para este año?")
+            print("1. Si")
+            print("2. No")
+            seleccion_anio = input().strip()
+
+            _mostrar_titulo("reservar_turno")
+
+            if seleccion_anio == "2":
+                anio += 1
+                break
+            elif seleccion_anio == "1":
+                break        
+            
+            print("El valor ingresado no es valido.")
+
+        while True:
+            print("Ingrese el numero del mes:")
+            seleccion_mes = input().strip()
+
+            print("Ingrese el numero de dia: ")
+            seleccion_dia = input().strip()
+
+            if _validar_fecha(anio, seleccion_mes, seleccion_dia):
+                fecha = date(anio, int(seleccion_mes), int(seleccion_dia))
+                break
+
+            _mostrar_titulo("reservar_turno")
+            print("La fecha ingresada no es valida")
 
         _mostrar_titulo("reservar_turno")
-
-        if seleccion_anio == "2":
-            anio += 1
-            break
-        elif seleccion_anio == "1":
-            break        
         
-        print("El valor ingresado no es valido.")
+        turno = _ingresar_horario(fecha)
 
-    while True:
-        print("Ingrese el numero del mes:")
-        seleccion_mes = input().strip()
-
-        print("Ingrese el numero de dia: ")
-        seleccion_dia = input().strip()
-
-        if _validar_fecha(anio, seleccion_mes, seleccion_dia):
-            fecha = date(anio, int(seleccion_mes), int(seleccion_dia))
-            break
-
-        _mostrar_titulo("reservar_turno")
-        print("La fecha ingresada no es valida")
-
-    _mostrar_titulo("reservar_turno")
-    
-    _ingresar_horario(fecha)
-
+        if turno:
+            turnos.append({"cliente":cliente,"dia":turno.date(),"hora":turno.time(),"servicio":servicio})
+            print("Turno reservado exitosamente.")
+            input()
 
 
 
@@ -596,7 +779,10 @@ def mostrar_turnos_cliente() -> None:
         input()
 
 
-def buscar_cliente() -> None:
+def buscar_cliente() -> Cliente:
+    """
+    Busca un cliente por numero de telefono completo o por nombre parcial o completo
+    """
     seleccion:str = ""
     cliente:Cliente = None
 
@@ -635,6 +821,7 @@ def buscar_cliente() -> None:
         print("No se a encontrado el cliente.")
 
     input()
+    return cliente
 
 
 #-----------------------------------------------
@@ -654,9 +841,9 @@ def main() -> None:
         elif selection == "2":
             buscar_cliente()
         elif selection == "3":
-            pass
+            reservar_turno()
         elif selection == "4":
-            pass
+            cancelar_turno()
         elif selection == "5":
             mostrar_agenda()
         elif selection == "6":
