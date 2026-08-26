@@ -159,6 +159,12 @@ def _mostrar_titulo(titulo:str, limpiar_pantalla:bool = True) -> None:
         print("-----------------------------------------")
         print()
 
+    elif titulo == "mostrar_estadisticas":
+        print("-----------------------------------------")
+        print("Estadisticas")
+        print("-----------------------------------------")
+        print()
+
 
 def _validar_nombre(nombre:str) -> bool:
     """
@@ -478,7 +484,94 @@ def _seleccionar_servicio() -> dict[str, str|tuple[int]]:
     return servicio_seleccionado
 
 
-#mostrar_estadisticas()
+def _ordenar_turnos() -> None:
+    """
+    Ordena los turnos por fecha y hora
+    """
+    global turnos   # Para que reconozca la variable como global y no local y efectvamente ordene la lista
+
+    turnos_ordenado:list[dict[str, str | dict[str,str|tuple[int]]]] = []
+
+    turnos_ordenado = sorted(turnos, key=(lambda x: datetime.combine(x["dia"], x["hora"])))
+
+    turnos = turnos_ordenado
+
+
+def mostrar_estadisticas() -> None:
+    """
+    Muestras estadisiticas
+    """
+
+    cant_clientes:int = 0
+    cant_turnos:int = 0
+    servicio_mas_pedido:str = ""
+    count_turno_por_servicio = {}
+    recaudacion:int = 0
+    servicio_turno:str = ""
+
+    cliente:str = ""
+    count_turno_por_cliente:dict[str, int] = {}
+    cliente_mas_turnos:str = ""
+
+
+    _mostrar_titulo("mostrar_estadisticas")
+
+    cant_clientes = len(clientes)
+    cant_turnos = len(turnos)
+
+    for turno in turnos:
+        servicio_turno = turno["servicio"].get("nombre")        
+        cliente = turno["cliente"].get_nombre()
+
+        if servicio_turno in count_turno_por_servicio.keys():
+            count_turno_por_servicio[servicio_turno] += 1
+        else:
+            count_turno_por_servicio[servicio_turno] = 1
+
+        if cliente in count_turno_por_cliente.keys():
+            count_turno_por_cliente[cliente] += 1
+        else:
+            count_turno_por_cliente[cliente] = 1
+
+        recaudacion += turno["servicio"].get("precio")[0]
+
+    servicio_mas_pedido_cant:int = max(count_turno_por_servicio.values())
+    posicion:int = list(count_turno_por_servicio.values()).index(servicio_mas_pedido_cant)
+    servicio_mas_pedido = list(count_turno_por_servicio.keys())[posicion]
+
+    cliente_mas_turnos_cant:int = max(count_turno_por_cliente.values())
+    posicion = list(count_turno_por_cliente.values()).index(cliente_mas_turnos_cant)
+    cliente_mas_turnos = list(count_turno_por_cliente.keys())[posicion]
+
+    #-------------Muestra
+
+    # Cantidad de clientes registrados.
+    print(f"Cantidad de clientes registrados: {cant_clientes}")
+    # Cantidad de turnos reservados.
+    print(f"Cantidad de turnos reservados: {cant_turnos}")
+    print()
+
+    # Cantidad de turnos por servicio.
+    print("Cantidad de turnos por servicio:")
+    for servicio in count_turno_por_servicio.keys():
+        print(f"  Servicio: {servicio}")
+        print(f"  Turnos: {count_turno_por_servicio[servicio]}")
+        print("  -----")
+    print()
+
+    # Servicio más solicitado.
+    print(f"Servicio mas solicitado: {servicio_mas_pedido}")
+    print()
+
+    # Cliente con mas turnos reservados
+    print(f"Cleinte con mas turnos reservados: {cliente_mas_turnos}")
+    print()
+
+    # Recaudación estimada.
+    print(f"Recaudacion estimada: ${recaudacion}")
+
+    input()
+
 
 
 def cancelar_turno() -> None:
@@ -502,9 +595,9 @@ def cancelar_turno() -> None:
         _mostrar_titulo("cancelar_turno")
 
         if seleccion == "s":
-            anio += 1
             break
         elif seleccion == "n":
+            anio += 1
             break
         else:
             print("Valor ingresqado invalido.")
@@ -524,11 +617,10 @@ def cancelar_turno() -> None:
 
         print("Uno de los valores ingresados no es valido")
 
-
     turno = _buscar_turno_fecha(turno_fecha)
 
     if turno:
-        print("Turno encontrado")
+        print("Turno seleccionado")
 
         while True:
             print()
@@ -551,8 +643,7 @@ def cancelar_turno() -> None:
 
     else:
         print("No se selecciono un tunro para cancelarlo")
-
-    input()
+        input()
 
 
 
@@ -658,6 +749,7 @@ def reservar_turno() -> None: # Dividir en mas funciones?
 
         if turno:
             turnos.append({"cliente":cliente,"dia":turno.date(),"hora":turno.time(),"servicio":servicio})
+            _ordenar_turnos()
             print("Turno reservado exitosamente.")
             input()
 
@@ -829,35 +921,35 @@ def buscar_cliente() -> Cliente:
 #-----------------------------------------------
 
 def main() -> None:
-    selection: int = 0
+    seleccion: int = 0
 
     while True:
         mostrar_menu()
 
-        selection = input()        
+        seleccion = input()        
 
-        if selection == "1":
-            registrar_cliente()
-        elif selection == "2":
-            buscar_cliente()
-        elif selection == "3":
-            reservar_turno()
-        elif selection == "4":
-            cancelar_turno()
-        elif selection == "5":
-            mostrar_agenda()
-        elif selection == "6":
-            mostrar_turnos_cliente()
-        elif selection == "7":
-            mostrar_servicios()
-        elif selection == "8":
-            pass
-        elif selection == "9":
-            mostrar_clientes()
-        elif selection == "10":
-            agregar_servicios()            
-        elif selection == "0":
-            break
+        if seleccion == "1":
+            registrar_cliente()     # Registrar Cliente
+        elif seleccion == "2":
+            buscar_cliente()    # Buscar Cliente
+        elif seleccion == "3":
+            reservar_turno()    # Reservar Turno
+        elif seleccion == "4":
+            cancelar_turno()    # Cancelar Turno
+        elif seleccion == "5":
+            mostrar_agenda()    # Ver Agenda Completa
+        elif seleccion == "6":
+            mostrar_turnos_cliente()    # Ver Turnos de un Cliente
+        elif seleccion == "7":
+            mostrar_servicios() # Mostrar servicios
+        elif seleccion == "8":
+            mostrar_estadisticas()  # Estadisticas
+        elif seleccion == "9":
+            mostrar_clientes()  # Mostrar cleintes
+        elif seleccion == "10":
+            agregar_servicios() # Agregar servicios
+        elif seleccion == "0":
+            break               # Salir
         else:
             print("EL NUMERO SELECCIONADO NO ES VALIDO.")
 
