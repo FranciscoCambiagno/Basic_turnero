@@ -348,8 +348,8 @@ def _buscar_cliente_nombre() -> Cliente:
     while True:
         if ingreso != ".":
             _mostrar_titulo("buscar_cliente")
-            print("Ingrese el nombre completo o parcial del cliente buscado:")
-            print("Ingrese un punto (.) si ya ve el nombre buscado en la lista.")
+            print("Ingrese el nombre completo o parcial del cliente buscado y precione enter:")
+            print("Ingrese un punto (.) si ya ve el nombre buscado en la lista. O si ya no ve ingun nombre.")
         
         print()
 
@@ -385,6 +385,9 @@ def _buscar_cliente_nombre() -> Cliente:
 
                 if ingreso == "s" or cliente_buscado:  # Si elligio s (salir) corta el bucle while exterior sino es s ingreso un numero o caracter invalido
                     break
+                elif ingreso == "r":
+                    nombre_parcial = ""
+                    ingreso = ""
 
         ingreso = input(f"Nombre: {nombre_parcial}").strip()
         #if ingreso != ".":
