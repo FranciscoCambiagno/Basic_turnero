@@ -42,14 +42,14 @@ clientes: list[Cliente] = [Cliente("Ariel","4823167"),Cliente("Martina","2917536
 
 
 turnos: list[ dict[str, str | dict[str,str|tuple[int]] ] ] = [
-    {"cliente":clientes[1],
-     "dia":datetime.strptime("21/09/2026", "%d/%m/%Y").date(),
-     "hora":datetime.strptime("16:00", "%H:%M").time(),
-     "servicio":servicios[1]},
     {"cliente":clientes[0],
      "dia":datetime.strptime("10/11/2026", "%d/%m/%Y").date(),
      "hora":datetime.strptime("10:30", "%H:%M").time(),
      "servicio":servicios[0]},
+    {"cliente":clientes[1],
+     "dia":datetime.strptime("21/09/2026", "%d/%m/%Y").date(),
+     "hora":datetime.strptime("16:00", "%H:%M").time(),
+     "servicio":servicios[1]},
     {"cliente":clientes[1],
      "dia":datetime.strptime("22/09/2026", "%d/%m/%Y").date(),
      "hora":datetime.strptime("17:00", "%H:%M").time(),
@@ -328,7 +328,8 @@ def registrar_cliente() -> None:
     else:
         print("Ya existe un cliente registrado con ese numero de telefono.")
 
-    input()
+    print()
+    input("Presione enter para continuar...")
 
   
 def _buscar_cliente_nombre() -> Cliente:
@@ -466,6 +467,7 @@ def _seleccionar_servicio() -> dict[str, str|tuple[int]]:
 
         for i, servicio in enumerate(servicios):
             print("----------")
+            print(f"Posicion : {i}")
             print(f"Nombre : {servicio["nombre"]}")
             print(f"Precio : {servicio.get("precio")[0]}")
             print()
@@ -487,7 +489,7 @@ def _seleccionar_servicio() -> dict[str, str|tuple[int]]:
     return servicio_seleccionado
 
 
-def _ordenar_turnos() -> None:
+def _ordenar_turnos() -> None:  # Deprecated
     """
     Ordena los turnos por fecha y hora
     """
@@ -498,6 +500,23 @@ def _ordenar_turnos() -> None:
     turnos_ordenado = sorted(turnos, key=(lambda x: datetime.combine(x["dia"], x["hora"])))
 
     turnos = turnos_ordenado
+
+
+def _insertar_turno_ordenado(cliente:Cliente, fecha_turno:datetime, servicio:dict[str,str|tuple[int]]) -> None:
+    global turnos   # Para que reconozca la variable como global y no local y efectvamente ordene la lista
+
+    aux_turno_completo = {"cliente":cliente,"dia":fecha_turno.date(),"hora":fecha_turno.time(),"servicio":servicio}
+
+    if len(turnos) == 0:
+        turnos.append(aux_turno_completo)
+    else:
+        for i, turno in enumerate(turnos):
+            if datetime.combine(turno["dia"], turno["hora"]) < fecha_turno:
+                turnos.insert(i, aux_turno_completo)
+                break
+            elif i == len(turnos) - 1:
+                turnos.append(aux_turno_completo)
+
 
 
 def mostrar_estadisticas() -> None:
@@ -573,7 +592,8 @@ def mostrar_estadisticas() -> None:
     # Recaudación estimada.
     print(f"Recaudacion estimada: ${recaudacion}")
 
-    input()
+    print()
+    input("Presione enter para continuar...")
 
 
 
@@ -646,7 +666,8 @@ def cancelar_turno() -> None:
 
     else:
         print("No se selecciono un tunro para cancelarlo")
-        input()
+        print()
+        input("Presione enter para continuar...")
 
 
 
@@ -690,11 +711,13 @@ def _ingresar_horario(fecha:date) -> datetime:
         horario_ingresado = datetime.combine(fecha, horarios_disponibles[indice_seleccion])
     else:
         print("No hay horarios disponibles para ese dia.")
-        input()
+        print()
+        input("Presione enter para continuar...")
     
     return horario_ingresado 
 
-    
+
+
  
 def reservar_turno() -> None: # Dividir en mas funciones?
     """
@@ -751,10 +774,12 @@ def reservar_turno() -> None: # Dividir en mas funciones?
         turno = _ingresar_horario(fecha)
 
         if turno:
-            turnos.append({"cliente":cliente,"dia":turno.date(),"hora":turno.time(),"servicio":servicio})
-            _ordenar_turnos()
+            #turnos.append({"cliente":cliente,"dia":turno.date(),"hora":turno.time(),"servicio":servicio})
+            #_ordenar_turnos()
+            _insertar_turno_ordenado(cliente, turno, servicio)
             print("Turno reservado exitosamente.")
-            input()
+            print()
+            input("Presione enter para continuar...")
 
 
 
@@ -806,7 +831,8 @@ def agregar_servicios() -> None:
     print(f"Nombre : {servicio["nombre"]}")
     print(f"Precio : {servicio["precio"][0]}")
 
-    input()
+    print()
+    input("Presione enter para continuar...")
     
 
 
@@ -820,7 +846,8 @@ def mostrar_clientes() -> None:
         print("--------")
         print()
 
-    input()
+    print()
+    input("Presione enter para continuar...")
     
 
 def mostrar_servicios() -> None:
@@ -834,7 +861,8 @@ def mostrar_servicios() -> None:
         print("--------")
         print()
 
-    input()
+    print()
+    input("Presione enter para continuar...")
     
 
 def mostrar_agenda(nombre_cliente:str = None) -> None:
@@ -856,7 +884,8 @@ def mostrar_agenda(nombre_cliente:str = None) -> None:
             print("-----------------------------------------")
             print()
 
-    input()
+    print()
+    input("Presione enter para continuar...")
 
 
 def mostrar_turnos_cliente() -> None:
@@ -871,7 +900,8 @@ def mostrar_turnos_cliente() -> None:
         mostrar_agenda(nombre_cliente=cliente.get_nombre()) 
     else:
         print("Cliente no seleccionado.")
-        input()
+        print()
+        input("Presione enter para continuar...")
 
 
 def buscar_cliente() -> Cliente:
@@ -915,7 +945,8 @@ def buscar_cliente() -> Cliente:
     else:
         print("No se a encontrado el cliente.")
 
-    input()
+    print()
+    input("Presione enter para continuar...")
     return cliente
 
 
@@ -951,6 +982,8 @@ def main() -> None:
             mostrar_clientes()  # Mostrar cleintes
         elif seleccion == "10":
             agregar_servicios() # Agregar servicios
+        elif seleccion == "11":
+            _ordenar_turnos()  # Ordenar turnos //Deprecated//
         elif seleccion == "0":
             break               # Salir
         else:
